@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UrbanGuard Live — Real-Time Mobility Intel</title>
+  <meta name="description" content="Professional real-time mobility dashboard for safety, ecology, and efficiency analysis.">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loading">
+    <div class="safety-scanner"></div>
+    <div class="loading-text">Syncing Live Telemetry...</div>
+  </div>
+
+  <div id="app-container">
+    
+    <!-- HEADER -->
+    <header id="main-header">
+      <div class="brand">
+        <div class="brand-logo">🛡️</div>
+        <div class="brand-info">
+          <h1>UrbanGuard <span class="live-tag">LIVE</span></h1>
+          <p>Real-Time Network Intelligence</p>
+        </div>
+      </div>
+      
+      <div class="system-status">
+        <div class="stat-item">
+          <span class="label">PQC DATA LAYER:</span>
+          <span class="value safe pulse">SECURE</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">GPS QUALITY:</span>
+          <span id="gps-status" class="value">ACQUIRING...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- UI PANELS -->
+    <main id="dashboard">
+      
+      <!-- LEFT: Search & Controls -->
+      <section class="panel side-panel">
+        <div class="panel-header">
+          <h2><span class="icon">🔍</span> Movement Planner</h2>
+        </div>
+
+        <div class="controls-body">
+          <div class="input-group">
+            <label>Origin</label>
+            <div class="input-wrapper">
+              <input type="text" id="origin-input" placeholder="Enter starting point...">
+              <button id="btn-gps" title="Use current location">📍</button>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Destination</label>
+            <input type="text" id="destination-input" placeholder="Where are you moving to?">
+          </div>
+
+          <div class="input-group">
+            <label>Desired Arrival Time</label>
+            <input type="time" id="arrival-time-input">
+          </div>
+
+          <button id="btn-calculate" class="primary-btn">Analyze Optimal Movement</button>
+
+          <hr class="divider">
+
+          <div class="toggle-group">
+            <h3>Nearby Journey Support</h3>
+            <div class="toggle-list">
+              <label class="switch">
+                <input type="checkbox" id="toggle-hospitals">
+                <span class="slider"></span>
+                <span class="text">Hospitals & Clinics</span>
+              </label>
+              <label class="switch">
+                <input type="checkbox" id="toggle-hotels">
+                <span class="slider"></span>
+                <span class="text">Hotels & Lodges</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="signal-density-card">
+          <div class="card-header">
+            <span>📡 Radio-Wave Density</span>
+            <span class="live-indicator">LIVE</span>
+          </div>
+          <div class="density-meter">
+            <div id="density-fill" class="fill" style="width: 45%;"></div>
+          </div>
+          <p class="density-label">Network Load: <span id="density-value">Moderate</span></p>
+        </div>
+      </section>
+
+      <!-- CENTER: Live Map -->
+      <section class="panel map-panel">
+        <div id="google-map" class="live-map"></div>
+        <div id="map-error-overlay" class="map-overlay hidden">
+          <div class="error-box">
+            <p>⚠️ Google Maps API Key Required</p>
+            <small>Please insert your key in index.html to enable live tracking.</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Recommendations -->
+      <section class="panel result-panel">
+        <div class="panel-header">
+          <h2><span class="icon">📊</span> Movement Metrics</h2>
+        </div>
+        
+        <div id="results-container" class="results-body">
+          <div class="empty-state">
+            <div class="icon">📡</div>
+            <p>Establishing corridor parameters...</p>
+            <small>Input route to generate telemetry insights.</small>
+          </div>
+        </div>
+
+        <div class="best-time-card hidden" id="best-time-alert">
+          <div class="header">⏳ Best Time to Leave</div>
+          <div class="content">
+            <p id="best-time-msg">Analyzing historical traffic windows...</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- GOOGLE MAPS LOADER (Asynchronous Pattern) -->
+  <script>
+    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b[q]||(b[q]={}),f=d.libraries||(d.libraries={}),e=a=new Symbol("symbol"),g=Object.assign({v:"weekly",key:"YOUR_GOOGLE_MAPS_API_KEY"},g);h=m.createElement("script");h.src=`https://maps.googleapis.com/maps/api/js?key=${g.key}&v=${g.v}&libraries=places,marker&callback=initApp`;h.async=true;m.head.appendChild(h);})(
+      {key: "YOUR_GOOGLE_MAPS_API_KEY"}
+    );
+  </script>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
