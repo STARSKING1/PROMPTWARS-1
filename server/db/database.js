@@ -39,6 +39,16 @@ db.exec(`
     co2_saved INTEGER,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  -- Stores user-reported community incidents (live hazards)
+  CREATE TABLE IF NOT EXISTS community_incidents (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT,
+    lat REAL,
+    lng REAL,
+    reporter_id TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // ============================================================
@@ -96,6 +106,15 @@ export function logEcoImpact(sessionId, co2Saved) {
 export function getTotalSavings() {
   const result = db.prepare('SELECT SUM(co2_saved) as total FROM eco_audit').get();
   return result.total || 0;
+}
+
+export function reportIncident(type, lat, lng, reporterId = 'anon') {
+  return db.prepare('INSERT INTO community_incidents (type, lat, lng, reporter_id) VALUES (?, ?, ?, ?)').run(type, lat, lng, reporterId);
+}
+
+export function getActiveIncidents() {
+  // Returns incidents reported in the last 24 hours
+  return db.prepare("SELECT * FROM community_incidents WHERE timestamp >= datetime('now', '-24 hours') ORDER BY timestamp DESC").all();
 }
 
 export default db;

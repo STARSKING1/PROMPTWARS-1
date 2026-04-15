@@ -18,11 +18,13 @@ let state = {
   autocompleteDestination: null,
   activeRoutes: [],
   supportMarkers: [],
+  communityMarkers: [],
   heatmap: null,
   totalEcoSavings: 0,
   userLocation: null,
   densityUpdateInterval: null,
   backendOnline: false,
+  activeHazardType: null,
   apiBase: 'http://localhost:3000/api/v1'
 };
 
@@ -72,6 +74,7 @@ window.initApp = async () => {
   initUIBindings();
   initHeatmap();
   startSignalDensityUpdate();
+  loadCommunityIncidents();
 
   // 4. Cleanup
   setTimeout(() => {
@@ -90,6 +93,27 @@ function initUIBindings() {
   document.getElementById('toggle-hospitals').addEventListener('change', updateSupportOverlays);
   document.getElementById('toggle-hotels').addEventListener('change', updateSupportOverlays);
   document.getElementById('toggle-heatmap').addEventListener('change', toggleHeatmap);
+
+  // Community Pulse bindings
+  document.getElementById('btn-report-hazard').addEventListener('click', openReportModal);
+  document.getElementById('btn-close-modal').addEventListener('click', closeReportModal);
+  document.getElementById('btn-submit-report').addEventListener('click', submitHazardReport);
+  
+  document.querySelectorAll('.opt-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.opt-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.activeHazardType = card.dataset.type;
+    });
+  });
+}
+
+function openReportModal() {
+  document.getElementById('modal-report').classList.remove('hidden');
+}
+
+function closeReportModal() {
+  document.getElementById('modal-report').classList.add('hidden');
 }
 
 /**
@@ -388,10 +412,114 @@ async function checkBackendStatus() {
     state.backendOnline = (data.status === 'ONLINE');
     if (state.backendOnline) {
       document.querySelector('.pulse-box .value').textContent = 'REAL-TIME';
+      showToast("PQC Telemetry Stream: ENGAGED", "success");
     }
   } catch (err) {
     state.backendOnline = false;
+    showToast("Edge Mode: Active (Local Fallback)", "danger");
   }
+}
+
+/**
+ * Toast Notification Logic
+ */
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  // Auto-remove after 4s
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+/**
+ * Improvement: Community Reporting Logic
+ */
+async function submitHazardReport() {
+  if (!state.activeHazardType) {
+    alert("Please select a hazard type.");
+    return;
+  }
+
+  // Get current location (must be locked by GPS first for accuracy)
+  if (!state.userLocation) {
+    alert("Please lock your GPS location (📍 button) before reporting.");
+    return;
+  }
+
+  const reportData = {
+    type: state.activeHazardType,
+    lat: state.userLocation.lat,
+    lng: state.userLocation.lng,
+    reporterId: 'User_Device_Intel'
+  };
+
+  try {
+    const res = await fetch(`${state.apiBase}/incidents/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(reportData)
+    });
+    
+    if (res.ok) {
+      showToast("Hazard broadcasted to the UrbanGuard network.", "success");
+      closeReportModal();
+      loadCommunityIncidents(); // Refresh map
+    }
+  } catch (err) {
+    showToast("Broadcast failure. Retrying...", "danger");
+    console.error("Failed to sync report:", err);
+  }
+}
+
+async function loadCommunityIncidents() {
+  if (!state.backendOnline) return;
+
+  try {
+    const res = await fetch(`${state.apiBase}/incidents/active`);
+    const result = await res.json();
+    
+    if (result.status === 'success') {
+      // Clear old
+      state.communityMarkers.forEach(m => m.setMap(null));
+      state.communityMarkers = [];
+
+      result.data.forEach(inc => {
+        const icon = getHazardIcon(inc.type);
+        createIncidentMarker(inc, icon);
+      });
+    }
+  } catch (err) {
+    console.warn("Community telemetry sync failed.");
+  }
+}
+
+async function createIncidentMarker(incident, iconEmoji) {
+  const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+  
+  const pin = new PinElement({ glyph: iconEmoji, background: '#ff5252', borderColor: '#fff' });
+  const marker = new AdvancedMarkerElement({
+    map: state.map,
+    position: { lat: incident.lat, lng: incident.lng },
+    content: pin.element,
+    title: `COMMUNITY_REPORT: ${incident.type}`
+  });
+  
+  state.communityMarkers.push(marker);
+}
+
+function getHazardIcon(type) {
+  const icons = { Flood: '🌊', Construction: '🚧', Safety: '⚠️', Maintenance: '💡' };
+  return icons[type] || '🚨';
 }
 
 /**

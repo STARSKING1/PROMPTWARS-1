@@ -1,6 +1,5 @@
-import express from 'express';
 import cors from 'cors';
-import { getPulseTelemetry, getNeighborhoods, logEcoImpact, getTotalSavings } from './db/database.js';
+import { getPulseTelemetry, getNeighborhoods, logEcoImpact, getTotalSavings, reportIncident, getActiveIncidents } from './db/database.js';
 import { pqcMiddleware } from './middleware/pqc.js';
 
 const app = express();
@@ -47,6 +46,37 @@ app.get('/api/v1/neighborhoods', (req, res) => {
       status: 'success',
       data: data
     });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+/**
+ * POST /api/v1/incidents/report
+ * User-driven crowdsourcing for live hazards.
+ */
+app.post('/api/v1/incidents/report', (req, res) => {
+  const { type, lat, lng, reporterId } = req.body;
+  if (!type || !lat || !lng) {
+    return res.status(400).json({ status: 'error', message: 'Missing report data.' });
+  }
+
+  try {
+    reportIncident(type, lat, lng, reporterId);
+    res.json({ status: 'success', message: 'Incident reported to network.' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+/**
+ * GET /api/v1/incidents/active
+ * Returns user-reported hazards from the last 24h.
+ */
+app.get('/api/v1/incidents/active', (req, res) => {
+  try {
+    const data = getActiveIncidents();
+    res.json({ status: 'success', data: data });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }

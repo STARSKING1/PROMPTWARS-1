@@ -19,6 +19,9 @@
     <div class="loading-text">Syncing Live Telemetry...</div>
   </div>
 
+  <!-- TOAST NOTIFICATION SYSTEM -->
+  <div id="toast-container"></div>
+
   <div id="app-container">
     
     <!-- HEADER -->
@@ -145,8 +148,38 @@
           </div>
         </div>
       </section>
-
     </main>
+
+    <!-- FLOATING ACTION: REPORT HAZARD -->
+    <button id="btn-report-hazard" class="fab-btn" title="Report Live Hazard">
+      <span class="icon">🚨</span>
+      <span class="label">Report Hazard</span>
+    </button>
+
+    <!-- HAZARD REPORTING MODAL -->
+    <div id="modal-report" class="modal-overlay hidden">
+      <div class="modal-content-wrapper">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3>🚨 Report Live Network Hazard</h3>
+            <button id="btn-close-modal" class="close-btn">&times;</button>
+          </div>
+          <p class="modal-desc">Your report will be shared with all users in real-time.</p>
+          
+          <div class="report-options">
+            <div class="opt-card" data-type="Flood">🌊<span>Poor Drainage / Flood</span></div>
+            <div class="opt-card" data-type="Construction">🚧<span>Roadwork / Blockage</span></div>
+            <div class="opt-card" data-type="Safety">⚠️<span>Safety Incident</span></div>
+            <div class="opt-card" data-type="Maintenance">💡<span>Infrastructure Failure</span></div>
+          </div>
+          
+          <div class="modal-footer">
+            <small>GPS Location will be attached to report.</small>
+            <button id="btn-submit-report" class="primary-btn">Broadcast to Network</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 
