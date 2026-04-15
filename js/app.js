@@ -507,14 +507,25 @@ async function createIncidentMarker(incident, iconEmoji) {
   const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
   
   const pin = new PinElement({ glyph: iconEmoji, background: '#ff5252', borderColor: '#fff' });
+  const safeType = sanitizeHTML(incident.type);
+  
   const marker = new AdvancedMarkerElement({
     map: state.map,
     position: { lat: incident.lat, lng: incident.lng },
     content: pin.element,
-    title: `COMMUNITY_REPORT: ${incident.type}`
+    title: `COMMUNITY_REPORT: ${safeType}`
   });
   
   state.communityMarkers.push(marker);
+}
+
+/**
+ * Security: Client-Side Sanitization
+ */
+function sanitizeHTML(str) {
+  const temp = document.createElement('div');
+  temp.textContent = str;
+  return temp.innerHTML;
 }
 
 function getHazardIcon(type) {

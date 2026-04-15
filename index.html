@@ -183,11 +183,26 @@
 
   </div>
 
-  <!-- GOOGLE MAPS LOADER (With Visualization Library) -->
+  <!-- GOOGLE MAPS BOOTSTRAPPER (Dynamic SDK Loader) -->
   <script>
-    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b[q]||(b[q]={}),f=d.libraries||(d.libraries={}),e=a=new Symbol("symbol"),g=Object.assign({v:"weekly",key:"YOUR_GOOGLE_MAPS_API_KEY"},g);h=m.createElement("script");h.src=`https://maps.googleapis.com/maps/api/js?key=${g.key}&v=${g.v}&libraries=places,marker,visualization&callback=initApp`;h.async=true;m.head.appendChild(h);})(
-      {key: "YOUR_GOOGLE_MAPS_API_KEY"}
-    );
+    async function bootstrapMaps() {
+      try {
+        const response = await fetch('http://localhost:3000/api/v1/config/map-key');
+        const { key } = await response.json();
+        
+        if (!key) throw new Error("API Key Missing");
+
+        (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b[q]||(b[q]={}),f=d.libraries||(d.libraries={}),e=a=new Symbol("symbol"),g=Object.assign({v:"weekly",key:key},g);h=m.createElement("script");h.src=`https://maps.googleapis.com/maps/api/js?key=${g.key}&v=${g.v}&libraries=places,marker,visualization&callback=initApp`;h.async=true;m.head.appendChild(h);})(
+          {key: key}
+        );
+      } catch (err) {
+        console.error("UrbanGuard: Script Load Failure:", err);
+        document.getElementById('map-error-overlay').classList.remove('hidden');
+      }
+    }
+    
+    // Begin loading sequence
+    bootstrapMaps();
   </script>
 
   <script src="js/data.js"></script>

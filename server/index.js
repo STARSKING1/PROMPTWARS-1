@@ -1,3 +1,5 @@
+import 'dotenv/config';
+import express from 'express';
 import cors from 'cors';
 import { getPulseTelemetry, getNeighborhoods, logEcoImpact, getTotalSavings, reportIncident, getActiveIncidents } from './db/database.js';
 import { pqcMiddleware } from './middleware/pqc.js';
@@ -61,12 +63,28 @@ app.post('/api/v1/incidents/report', (req, res) => {
     return res.status(400).json({ status: 'error', message: 'Missing report data.' });
   }
 
+  // Security: Sanitize all user inputs
+  const safeType = sanitizeInput(type);
+  const safeReporterId = sanitizeInput(reporterId || 'anon');
+
   try {
-    reportIncident(type, lat, lng, reporterId);
+    reportIncident(safeType, lat, lng, safeReporterId);
     res.json({ status: 'success', message: 'Incident reported to network.' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
+});
+
+/**
+ * GET /api/v1/config/map-key
+ * Securely serves the Google Maps key from .env
+ */
+app.get('/api/v1/config/map-key', (req, res) => {
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ status: 'error', message: 'API Key not configured on server.' });
+  }
+  res.json({ key: apiKey });
 });
 
 /**
@@ -119,6 +137,14 @@ app.get('/api/v1/status', (req, res) => {
     engine: 'UrbanGuard_Live_v1.5'
   });
 });
+
+/**
+ * Security: Basic Input Sanitization
+ */
+function sanitizeInput(str) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[<>]/g, '').trim(); // Prevent simple tag injection
+}
 
 // ============================================================
 // SERVER START

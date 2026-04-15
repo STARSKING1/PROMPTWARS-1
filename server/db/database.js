@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import crypto from 'node:crypto';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -109,7 +110,16 @@ export function getTotalSavings() {
 }
 
 export function reportIncident(type, lat, lng, reporterId = 'anon') {
-  return db.prepare('INSERT INTO community_incidents (type, lat, lng, reporter_id) VALUES (?, ?, ?, ?)').run(type, lat, lng, reporterId);
+  const hashedId = hashId(reporterId);
+  return db.prepare('INSERT INTO community_incidents (type, lat, lng, reporter_id) VALUES (?, ?, ?, ?)').run(type, lat, lng, hashedId);
+}
+
+/**
+ * Privacy: SHA-256 ID Anonymization
+ */
+function hashId(id) {
+  const salt = process.env.ANONYMIZATION_SALT || 'default_salt';
+  return crypto.createHash('sha256').update(id + salt).digest('hex');
 }
 
 export function getActiveIncidents() {
