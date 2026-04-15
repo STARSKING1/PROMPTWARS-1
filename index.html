@@ -33,6 +33,10 @@
       
       <div class="system-status">
         <div class="stat-item">
+          <span class="label">♻️ ECO IMPACT:</span>
+          <span id="eco-ledger" class="value safe">0g saved</span>
+        </div>
+        <div class="stat-item pulse-box">
           <span class="label">PQC DATA LAYER:</span>
           <span class="value safe pulse">SECURE</span>
         </div>
@@ -88,6 +92,11 @@
                 <span class="slider"></span>
                 <span class="text">Hotels & Lodges</span>
               </label>
+              <label class="switch special">
+                <input type="checkbox" id="toggle-heatmap">
+                <span class="slider"></span>
+                <span class="text">Urban Pulse (Heatmap)</span>
+              </label>
             </div>
           </div>
         </div>
@@ -141,9 +150,9 @@
 
   </div>
 
-  <!-- GOOGLE MAPS LOADER (Asynchronous Pattern) -->
+  <!-- GOOGLE MAPS LOADER (With Visualization Library) -->
   <script>
-    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b[q]||(b[q]={}),f=d.libraries||(d.libraries={}),e=a=new Symbol("symbol"),g=Object.assign({v:"weekly",key:"YOUR_GOOGLE_MAPS_API_KEY"},g);h=m.createElement("script");h.src=`https://maps.googleapis.com/maps/api/js?key=${g.key}&v=${g.v}&libraries=places,marker&callback=initApp`;h.async=true;m.head.appendChild(h);})(
+    (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b[q]||(b[q]={}),f=d.libraries||(d.libraries={}),e=a=new Symbol("symbol"),g=Object.assign({v:"weekly",key:"YOUR_GOOGLE_MAPS_API_KEY"},g);h=m.createElement("script");h.src=`https://maps.googleapis.com/maps/api/js?key=${g.key}&v=${g.v}&libraries=places,marker,visualization&callback=initApp`;h.async=true;m.head.appendChild(h);})(
       {key: "YOUR_GOOGLE_MAPS_API_KEY"}
     );
   </script>

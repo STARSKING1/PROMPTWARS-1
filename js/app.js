@@ -18,6 +18,8 @@ let state = {
   autocompleteDestination: null,
   activeRoutes: [],
   supportMarkers: [],
+  heatmap: null,
+  totalEcoSavings: 0,
   userLocation: null,
   densityUpdateInterval: null
 };
@@ -63,6 +65,7 @@ window.initApp = async () => {
   
   // 3. UI Bindings
   initUIBindings();
+  initHeatmap();
   startSignalDensityUpdate();
 
   // 4. Cleanup
@@ -81,6 +84,31 @@ function initUIBindings() {
   // Support toggles
   document.getElementById('toggle-hospitals').addEventListener('change', updateSupportOverlays);
   document.getElementById('toggle-hotels').addEventListener('change', updateSupportOverlays);
+  document.getElementById('toggle-heatmap').addEventListener('change', toggleHeatmap);
+}
+
+/**
+ * Innovation: Heatmap Layer (Urban Pulse)
+ */
+async function initHeatmap() {
+  const { Visualization } = await google.maps.importLibrary("visualization");
+  
+  const heatmapData = URBAN_PULSE_POINTS.map(p => ({
+    location: new google.maps.LatLng(p.lat, p.lng),
+    weight: p.weight
+  }));
+
+  state.heatmap = new google.maps.visualization.HeatmapLayer({
+    data: heatmapData,
+    map: null, // Start hidden
+    radius: 40,
+    opacity: 0.6
+  });
+}
+
+function toggleHeatmap() {
+  const isChecked = document.getElementById('toggle-heatmap').checked;
+  state.heatmap.setMap(isChecked ? state.map : null);
 }
 
 /**
@@ -149,6 +177,8 @@ async function analyzeOptimalMovement() {
     const analyzedRoutes = analyzeRouteData(validRoutes);
     renderResults(analyzedRoutes);
     
+    // Update Eco Impact Ledger (comparing vs average car emissions for shortest path)
+    updateEcoLedger(analyzedRoutes);
     // Auto-select Safest for initial map display
     displayOnMap(analyzedRoutes.find(r => r.category === 'safest'));
     
@@ -303,6 +333,25 @@ function getSafetyColor(score) {
   if (score > 80) return '#00e676';
   if (score > 50) return '#ffab00';
   return '#ff5252';
+}
+
+/**
+ * Innovation: Eco Ledger Math
+ */
+function updateEcoLedger(routes) {
+  // Find shortest route (Easiest usually) as baseline
+  const baseline = routes.find(r => r.category === 'easiest') || routes[0];
+  const safest = routes.find(r => r.category === 'safest');
+  const greenest = routes.find(r => r.category === 'greenest');
+
+  // If user chooses green/safe, they save vs the "Easiest" (usually driving)
+  // For demo, we reward the fact that they *analyzed* a green route
+  const currentSavings = Math.max(0, parseInt(baseline.co2) - parseInt(greenest?.co2 || 0));
+  state.totalEcoSavings += currentSavings;
+  
+  document.getElementById('eco-ledger').textContent = `${state.totalEcoSavings}g saved`;
+  document.getElementById('eco-ledger').classList.add('pulse');
+  setTimeout(() => document.getElementById('eco-ledger').classList.remove('pulse'), 1000);
 }
 
 /**
