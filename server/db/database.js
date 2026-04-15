@@ -8,142 +8,94 @@ const __dirname = path.dirname(__filename);
 const dbPath = path.join(__dirname, '..', 'guardian.db');
 const db = new Database(dbPath);
 
-console.log('GuardianDB: Initializing SQLite Intelligence Layer...');
+console.log('UrbanGuardDB: Initializing Live Telemetry Layer...');
 
 // ============================================================
-// SCHEMA INITIALIZATION
+// SCHEMA INITIALIZATION (UrbanGuard Live Build)
 // ============================================================
 db.exec(`
-  CREATE TABLE IF NOT EXISTS routes (
+  -- Stores live signal density telemetry points
+  CREATE TABLE IF NOT EXISTS urban_pulse (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lat REAL,
+    lng REAL,
+    base_weight INTEGER,
+    label TEXT
+  );
+
+  -- Stores Ward-level Safety Index
+  CREATE TABLE IF NOT EXISTS neighborhoods (
     id TEXT PRIMARY KEY,
     name TEXT,
-    summary TEXT,
-    distance REAL,
-    factors JSON,
-    path JSON
+    nsi INTEGER,
+    status TEXT,
+    alerts INTEGER
   );
 
-  CREATE TABLE IF NOT EXISTS risks (
+  -- Stores persistent Eco-Impact Audit logs
+  CREATE TABLE IF NOT EXISTS eco_audit (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    type TEXT,
-    location TEXT,
-    severity TEXT,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    source TEXT,
-    message TEXT,
-    is_urgent INTEGER DEFAULT 0,
+    session_id TEXT,
+    co2_saved INTEGER,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
 
 // ============================================================
-// SEED DATA (Whitefield to DSU)
+// SEED DATA: URBAN PULSE (Hotspots)
 // ============================================================
-const seedRoutes = [
-  {
-    id: 'route-a',
-    name: 'Outer Ring Road (ORR) Path',
-    summary: 'Via Marathahalli - Silk Board - Banashankari',
-    distance: 22.4,
-    factors: JSON.stringify({
-      traffic: 8,
-      weather: 'Light Rain',
-      lighting: 'High (LED Optimized)',
-      pavement: 'Good',
-      drainage: 'Fair',
-      accidentDensity: 'Medium',
-      infrastructure: 'CCTV Monitored'
-    }),
-    path: JSON.stringify([
-      { lat: 12.9698, lng: 77.7500 },
-      { lat: 12.9561, lng: 77.7010 },
-      { lat: 12.9177, lng: 77.6238 },
-      { lat: 12.9116, lng: 77.5830 },
-      { lat: 12.9100, lng: 77.5670 }
-    ])
-  },
-  {
-    id: 'route-b',
-    name: 'Sarjapur Main Road Path',
-    summary: 'Via Varthur - Sarjapur - HSR Layout',
-    distance: 19.8,
-    factors: JSON.stringify({
-      traffic: 6,
-      weather: 'Heavy Downpour',
-      lighting: 'Medium (Intermittent)',
-      pavement: 'Fair',
-      drainage: 'Poor (High Flood Risk)',
-      accidentDensity: 'Low',
-      infrastructure: 'Under Maintenance'
-    }),
-    path: JSON.stringify([
-      { lat: 12.9698, lng: 77.7500 },
-      { lat: 12.9377, lng: 77.6970 },
-      { lat: 12.9200, lng: 77.6840 },
-      { lat: 12.9116, lng: 77.6389 },
-      { lat: 12.9100, lng: 77.5670 }
-    ])
-  },
-  {
-    id: 'route-c',
-    name: 'Internal Layouts (Shortcut)',
-    summary: 'Via HAL - Koramangala - Jayanagar',
-    distance: 20.5,
-    factors: JSON.stringify({
-      traffic: 4,
-      weather: 'Light Rain',
-      lighting: 'Low (Residential)',
-      pavement: 'Variable',
-      drainage: 'Good',
-      accidentDensity: 'High (Blind Curves)',
-      infrastructure: 'Minimal'
-    }),
-    path: JSON.stringify([
-      { lat: 12.9698, lng: 77.7500 },
-      { lat: 12.9600, lng: 77.6400 },
-      { lat: 12.9352, lng: 77.6245 },
-      { lat: 12.9300, lng: 77.5830 },
-      { lat: 12.9100, lng: 77.5670 }
-    ])
-  }
+const pulseSeeds = [
+  { lat: 12.9177, lng: 77.6238, base_weight: 10, label: 'Silk Board' },
+  { lat: 12.9784, lng: 77.6408, base_weight: 9, label: 'Indiranagar' },
+  { lat: 12.9698, lng: 77.7500, base_weight: 10, label: 'Whitefield Hub' },
+  { lat: 12.9561, lng: 77.7010, base_weight: 9, label: 'Marathahalli' },
+  { lat: 13.0285, lng: 77.5895, base_weight: 8, label: 'Hebbal' },
+  { lat: 12.9352, lng: 77.6245, base_weight: 7, label: 'Koramangala' },
+  { lat: 12.9300, lng: 77.5830, base_weight: 7, label: 'Jayanagar' },
+  { lat: 12.9100, lng: 77.5670, base_weight: 5, label: 'Banashankari' }
 ];
 
-const insertRoute = db.prepare(`
-  INSERT OR REPLACE INTO routes (id, name, summary, distance, factors, path)
-  VALUES (@id, @name, @summary, @distance, @factors, @path)
-`);
+const insertPulse = db.prepare('INSERT OR REPLACE INTO urban_pulse (lat, lng, base_weight, label) VALUES (@lat, @lng, @base_weight, @label)');
+pulseSeeds.forEach(p => insertPulse.run(p));
 
-seedRoutes.forEach(r => insertRoute.run(r));
+// ============================================================
+// SEED DATA: NEIGHBORHOODS
+// ============================================================
+const neighborhoodSeeds = [
+  { id: 'koramangala', name: 'Koramangala', nsi: 82, status: 'Stable', alerts: 0 },
+  { id: 'indiranagar', name: 'Indiranagar', nsi: 88, status: 'Secure', alerts: 0 },
+  { id: 'silk_board', name: 'Silk Board Zone', nsi: 45, status: 'Critical', alerts: 2 },
+  { id: 'whitefield', name: 'Whitefield Hub', nsi: 65, status: 'Moderate', alerts: 1 },
+  { id: 'jayanagar', name: 'Jayanagar', nsi: 92, status: 'Safe', alerts: 0 }
+];
 
-// Seed initial risks
-db.exec(`
-  DELETE FROM risks;
-  INSERT INTO risks (type, location, severity) VALUES ('Flooding', 'Silk Board Junction', 'High');
-  INSERT INTO risks (type, location, severity) VALUES ('Roadwork', 'Koramangala 80ft Rd', 'Medium');
-`);
+const insertWard = db.prepare('INSERT OR REPLACE INTO neighborhoods (id, name, nsi, status, alerts) VALUES (@id, @name, @nsi, @status, @alerts)');
+neighborhoodSeeds.forEach(w => insertWard.run(w));
 
-export function getRoutes() {
-  return db.prepare('SELECT * FROM routes').all().map(r => ({
-    ...r,
-    factors: JSON.parse(r.factors),
-    path: JSON.parse(r.path)
+// ============================================================
+// DATABASE OPERATIONS
+// ============================================================
+
+export function getPulseTelemetry() {
+  const points = db.prepare('SELECT * FROM urban_pulse').all();
+  // Simulate real-time variance (+/- 1 to weight)
+  return points.map(p => ({
+    ...p,
+    weight: Math.max(1, Math.min(10, p.base_weight + (Math.floor(Math.random() * 3) - 1)))
   }));
 }
 
-export function getRisks() {
-  return db.prepare('SELECT * FROM risks ORDER BY timestamp DESC LIMIT 5').all();
+export function getNeighborhoods() {
+  return db.prepare('SELECT * FROM neighborhoods').all();
 }
 
-export function addLog(source, message, isUrgent = 0) {
-  db.prepare('INSERT INTO logs (source, message, is_urgent) VALUES (?, ?, ?)').run(source, message, isUrgent);
+export function logEcoImpact(sessionId, co2Saved) {
+  return db.prepare('INSERT INTO eco_audit (session_id, co2_saved) VALUES (?, ?)').run(sessionId, co2Saved);
 }
 
-export function getLogs() {
-  return db.prepare('SELECT * FROM logs ORDER BY timestamp DESC LIMIT 20').all();
+export function getTotalSavings() {
+  const result = db.prepare('SELECT SUM(co2_saved) as total FROM eco_audit').get();
+  return result.total || 0;
 }
 
 export default db;

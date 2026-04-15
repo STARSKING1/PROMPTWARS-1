@@ -21,7 +21,9 @@ let state = {
   heatmap: null,
   totalEcoSavings: 0,
   userLocation: null,
-  densityUpdateInterval: null
+  densityUpdateInterval: null,
+  backendOnline: false,
+  apiBase: 'http://localhost:3000/api/v1'
 };
 
 // ============================================================
@@ -63,7 +65,10 @@ window.initApp = async () => {
   state.autocompleteOrigin = new Autocomplete(document.getElementById('origin-input'));
   state.autocompleteDestination = new Autocomplete(document.getElementById('destination-input'));
   
-  // 3. UI Bindings
+  // 3. Backend Connection Health Check
+  checkBackendStatus();
+
+  // 4. UI Bindings
   initUIBindings();
   initHeatmap();
   startSignalDensityUpdate();
@@ -89,18 +94,32 @@ function initUIBindings() {
 
 /**
  * Innovation: Heatmap Layer (Urban Pulse)
+ * Now connects to the live backend telemetry.
  */
 async function initHeatmap() {
   const { Visualization } = await google.maps.importLibrary("visualization");
   
-  const heatmapData = URBAN_PULSE_POINTS.map(p => ({
+  let points = URBAN_PULSE_POINTS; // Local Fallback
+
+  try {
+    const response = await fetch(`${state.apiBase}/pulse`);
+    const result = await response.json();
+    if (result.status === 'success') {
+      points = result.data;
+      console.log("UrbanGuard: Live Telemetry Engaged.");
+    }
+  } catch (e) {
+    console.warn("UrbanGuard: Backend unreachable. Using fallback pulse data.");
+  }
+
+  const heatmapData = points.map(p => ({
     location: new google.maps.LatLng(p.lat, p.lng),
-    weight: p.weight
+    weight: p.weight || p.base_weight
   }));
 
   state.heatmap = new google.maps.visualization.HeatmapLayer({
     data: heatmapData,
-    map: null, // Start hidden
+    map: null, 
     radius: 40,
     opacity: 0.6
   });
@@ -344,14 +363,35 @@ function updateEcoLedger(routes) {
   const safest = routes.find(r => r.category === 'safest');
   const greenest = routes.find(r => r.category === 'greenest');
 
-  // If user chooses green/safe, they save vs the "Easiest" (usually driving)
-  // For demo, we reward the fact that they *analyzed* a green route
   const currentSavings = Math.max(0, parseInt(baseline.co2) - parseInt(greenest?.co2 || 0));
   state.totalEcoSavings += currentSavings;
   
+  // Persist to backend
+  if (state.backendOnline) {
+    fetch(`${state.apiBase}/eco-audit/log`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ co2Saved: currentSavings, sessionId: 'User_Primary' })
+    }).then(res => res.json())
+      .then(data => console.log("Eco-Audit Persisted. Global Total:", data.global_total));
+  }
+
   document.getElementById('eco-ledger').textContent = `${state.totalEcoSavings}g saved`;
   document.getElementById('eco-ledger').classList.add('pulse');
   setTimeout(() => document.getElementById('eco-ledger').classList.remove('pulse'), 1000);
+}
+
+async function checkBackendStatus() {
+  try {
+    const res = await fetch(`${state.apiBase}/status`);
+    const data = await res.json();
+    state.backendOnline = (data.status === 'ONLINE');
+    if (state.backendOnline) {
+      document.querySelector('.pulse-box .value').textContent = 'REAL-TIME';
+    }
+  } catch (err) {
+    state.backendOnline = false;
+  }
 }
 
 /**

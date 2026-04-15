@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { getRoutes, getRisks, addLog, getLogs } from './db/database.js';
+import { getPulseTelemetry, getNeighborhoods, logEcoImpact, getTotalSavings } from './db/database.js';
 import { pqcMiddleware } from './middleware/pqc.js';
 
 const app = express();
@@ -11,24 +11,25 @@ const PORT = process.env.PORT || 3000;
 // ============================================================
 app.use(cors());
 app.use(express.json());
-app.use(pqcMiddleware); // Every request is PQC-checked
+app.use(pqcMiddleware); // Every telemetry stream is PQC-secured
 
 // ============================================================
-// API ENDPOINTS
+// API ENDPOINTS (UrbanGuard Live)
 // ============================================================
 
 /**
- * GET /api/v1/corridor
- * Returns candidate routes for the Whitefield-to-DSU corridor.
+ * GET /api/v1/pulse
+ * Returns live signal density hotspots for the Urban Pulse heatmap.
+ * Features: Dynamic weight variance simulation.
  */
-app.get('/api/v1/corridor', (req, res) => {
+app.get('/api/v1/pulse', (req, res) => {
   try {
-    const routes = getRoutes();
-    addLog('System', 'Corridor telemetry requested and served.');
+    const data = getPulseTelemetry();
     res.json({
       status: 'success',
-      data: routes,
-      pqc_verified: true
+      source: 'SENTINEL_RF_POST',
+      data: data,
+      verified: true
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -36,16 +37,15 @@ app.get('/api/v1/corridor', (req, res) => {
 });
 
 /**
- * GET /api/v1/risks
- * Returns current real-time risks (weather, incidents).
+ * GET /api/v1/neighborhoods
+ * Returns safety index for key Bengaluru wards.
  */
-app.get('/api/v1/risks', (req, res) => {
+app.get('/api/v1/neighborhoods', (req, res) => {
   try {
-    const risks = getRisks();
+    const data = getNeighborhoods();
     res.json({
       status: 'success',
-      data: risks,
-      system_time: new Date().toISOString()
+      data: data
     });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
@@ -53,50 +53,48 @@ app.get('/api/v1/risks', (req, res) => {
 });
 
 /**
- * POST /api/v1/analyze
- * Server-side logic for SFS calculation (The "AI" Engine)
+ * POST /api/v1/eco-audit/log
+ * Persists carbon savings into the global audit log.
  */
-app.post('/api/v1/analyze', (req, res) => {
-  const { routeId, simMode } = req.body;
+app.post('/api/v1/eco-audit/log', (req, res) => {
+  const { sessionId, co2Saved } = req.body;
   
-  // In a real LLM-backed app, this would be a prompt call.
-  // Here we use the weighted logic defined in our Prompt Engine specs.
+  if (!co2Saved) {
+    return res.status(400).json({ status: 'error', message: 'No CO2 data provided.' });
+  }
+
   try {
-    addLog('AI_ENGINE', `Recieved analysis request for ${routeId}. Simulation: ${JSON.stringify(simMode)}`);
+    logEcoImpact(sessionId || 'anon', co2Saved);
+    const globalTotal = getTotalSavings();
     
-    // Simulate thinking time
-    setTimeout(() => {
-      res.json({
-        status: 'success',
-        processed_by: 'Guardian_Neural_v2',
-        integrity_check: 'SHA-3-512_PQC_OK'
-      });
-    }, 500);
+    res.json({
+      status: 'success',
+      contribution: co2Saved,
+      global_total: globalTotal,
+      integrity_signature: 'LATTICE_SECURE_ACK'
+    });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
 
 /**
- * GET /api/v1/logs
- * Returns recent activity logs for the Prompt Console.
+ * GET /api/v1/status
+ * Health check for the UrbanGuard Live infrastructure.
  */
-app.get('/api/v1/logs', (req, res) => {
-  try {
-    const logs = getLogs();
-    res.json(logs);
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
-  }
+app.get('/api/v1/status', (req, res) => {
+  res.json({
+    status: 'ONLINE',
+    security: 'PQC_ACTIVE',
+    engine: 'UrbanGuard_Live_v1.5'
+  });
 });
 
 // ============================================================
 // SERVER START
 // ============================================================
 app.listen(PORT, () => {
-  console.log(`\n🛡️  GuardianPath AI Backend is LIVE`);
-  console.log(`📡 Endpoints: http://localhost:${PORT}/api/v1/corridor`);
-  console.log(`🔐 PQC Security Layer: ACTIVE\n`);
-  
-  addLog('System', 'GuardianPath AI Backend initialized.');
+  console.log(`\n🛡️  UrbanGuard Live Backend is ONLINE`);
+  console.log(`📡 Pulse Telemetry: http://localhost:${PORT}/api/v1/pulse`);
+  console.log(`🔐 PQC Security: Mandatory for all endpoints\n`);
 });

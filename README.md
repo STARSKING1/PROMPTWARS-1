@@ -2,23 +2,33 @@
 
 > **UrbanGuard Live is a professional, data-driven mobility intelligence platform. It leverages live Google Maps Platform APIs, browser geolocation, and crowd-density modeling to prioritize Safety, Sustainability, and Efficiency in urban movement.**
 
-## 📊 City Intelligence Modules
+## 🏛️ Full-Stack Intelligence Architecture
 
-| Module | Function | Data Source |
+| Layer | Module | Data Source |
 |---|---|---|
-| **Urban Pulse Heatmap** | **(NEW)** A live thermal overlay visualizing crowd-sourced signal density across the city. | Radio-Wave Behavioral Model |
-| **Eco-Impact Ledger** | **(NEW)** Real-time tracking of cumulative carbon savings based on route choice. | Emission-Data Ranking Engine |
-| **Safest Path Engine** | Ranks routes by traffic speed, simulated signal density, and lighting telemetry. | Google Directions + Radio-Wave Logic |
-| **Arrival-Time Optimizer** | Recommends the "Best Departure Window" to hit your target arrival goal. | Google Distance Matrix Predictive Logic |
-| **Journey Support** | Automatically identifies Hospitals, Hotels, and Lodges along hazardous segments. | Google Places API (Nearby Search) |
+| **Backend (SQLite)** | **Urban Pulse Telemetry** | Simulated Radio-Wave Density API |
+| **Backend (SQLite)** | **Eco-Audit Registry** | Persistent Carbon-Savings Ledger |
+| **Security (Node)** | **PQC Middleware** | Post-Quantum Telemetry Protection |
+| **Frontend (JS)** | **Directions Engine** | Live Google Maps API Routing |
+| **Frontend (JS)** | **Sentinel View** | Dynamic Heatmap Visualization |
 
-## 🛠️ Performance Tech Stack
+## 🚀 Deployment & Prototyping
 
-- **Visualization Engine**: Google Maps `Visualization` library for dynamic heatmapping.
-- **Spatial Core**: Google Maps JavaScript API (Directions, Distance Matrix, Places).
-- **Modern Rendering**: `AdvancedMarkerElement` and Async Loading for peak performance.
-- **Geospatial**: W3C Geolocation API for real-time user-location tracking.
-- **Resilience**: 100% data-driven. Zero dependency on AI models, ensuring deterministic safety advice.
+### 1. Backend Setup (Telemetry Engine)
+```bash
+cd server
+npm install
+npm start
+```
+*The server will initialize `guardian.db` and start the PQC Data Layer.*
+
+### 2. Frontend Setup (Intelligence UI)
+- Open `index.html`.
+- Replace `YOUR_GOOGLE_MAPS_API_KEY` (in the script loader) with a valid key.
+- The UI will automatically detect the backend and switch to **REAL-TIME** mode.
+
+## 🏆 Innovation Summary: The Urban Pulse
+UrbanGuard Live is more than a map; it's a city twin. By correlating simulated radio-wave density from the SQLite backend with real-time Google traffic, it predicts unsafe crowd clusters and rewards sustainable movement with persistent auditing—all secured for the post-quantum era.
 
 ## 🚀 Deployment & Presentation
 
