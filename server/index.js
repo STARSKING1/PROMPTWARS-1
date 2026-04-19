@@ -58,17 +58,19 @@ app.get('/api/v1/neighborhoods', (req, res) => {
  * User-driven crowdsourcing for live hazards.
  */
 app.post('/api/v1/incidents/report', (req, res) => {
-  const { type, lat, lng, reporterId } = req.body;
+  const { type, severity, description, lat, lng, reporterId } = req.body;
   if (!type || !lat || !lng) {
-    return res.status(400).json({ status: 'error', message: 'Missing report data.' });
+    return res.status(400).json({ status: 'error', message: 'Missing required report data.' });
   }
 
   // Security: Sanitize all user inputs
   const safeType = sanitizeInput(type);
+  const safeSeverity = sanitizeInput(severity || 'Medium');
+  const safeDescription = sanitizeInput(description || 'No additional details.');
   const safeReporterId = sanitizeInput(reporterId || 'anon');
 
   try {
-    reportIncident(safeType, lat, lng, safeReporterId);
+    reportIncident(safeType, safeSeverity, safeDescription, lat, lng, safeReporterId);
     res.json({ status: 'success', message: 'Incident reported to network.' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });

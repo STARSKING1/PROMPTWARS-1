@@ -8,12 +8,14 @@
 |---|---|---|
 | **Backend (SQLite)** | **Urban Pulse Telemetry** | Simulated Radio-Wave Density API |
 | **Backend (SQLite)** | **Eco-Audit Registry** | Persistent Carbon-Savings Ledger |
+| **Backend (SQLite)** | **Hazard Network** | Crowdsourced Incident Ledger with Severity |
 | **Security (Node)** | **PQC Middleware** | Post-Quantum Telemetry Protection |
 | **Frontend (JS)** | **Directions Engine** | Live Google Maps API Routing |
 | **Frontend (JS)** | **Sentinel View** | Dynamic Heatmap Visualization |
+| **Frontend (JS)** | **Safety Guard** | Real-Time Neighborhood Security Index |
 
-## 🏆 Innovation Summary: The Urban Pulse
-UrbanGuard Live is more than a map; it's a city twin. By correlating simulated radio-wave density from the SQLite backend with real-time Google traffic, it predicts unsafe crowd clusters and rewards sustainable movement with persistent auditing—all secured for the post-quantum era.
+## 🏆 Innovation Summary: The Urban Pulse & Safety Guard
+UrbanGuard Live is more than a map; it's a city twin. By correlating simulated radio-wave density from the SQLite backend with real-time Google traffic and community-reported hazards, it predicts unsafe crowd clusters. The new **Safety Guard** provides ward-level security metrics, allowing users to monitor neighborhood safety before they even start their journey.
 
 ## 🛡️ Privacy & Security Protocols
 UrbanGuard Live is built with a **Security-First** philosophy:
@@ -24,14 +26,23 @@ UrbanGuard Live is built with a **Security-First** philosophy:
 
 ## 🚀 Deployment & Presentation
 
-1. **Insert API Key**: Open `index.html` and replace `YOUR_GOOGLE_MAPS_API_KEY` (in two locations in the loader script) with a valid key.
-2. **Launch**: Simply open `index.html` in a web browser.
+1. **Backend Setup**:
+   - Navigate to the `server/` directory.
+   - Run `npm install` to install dependencies.
+   - Duplicate `.env.example` to `.env`.
+   - Insert your Google Maps API Key in `.env`.
+   - Run `npm run dev` to start the intelligence server.
+
+2. **Launch Frontend**:
+   - Open `index.html` in a modern web browser.
+   - The UI will automatically sync with the backend at `localhost:3000`.
+
 3. **Analyze**:
    - Use **📍 GPS** to lock your origin.
-   - Enter a **Destination** and a **Target Arrival Time**.
-   - Toggle **Journey Support** to overlay medical support infrastructure along your corridor.
-   - Activate **Urban Pulse** (Heatmap) to see the city's crowd clusters in real-time thermal view.
-   - Observe the **Eco-Impact Ledger** update at the top of the screen as you select different movement options.
+   - Enter a **Destination** and observe the **Movement Metrics**.
+   - Use the **Neighborhood Safety Guard** to check ward-level security.
+   - **Report Hazards**: Use the floating red button to broadcast hazards with severity and descriptions.
+   - Observe the **Eco-Impact Ledger** update at the top of the screen.
 
 ---
 

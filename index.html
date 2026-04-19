@@ -1,211 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UrbanGuard Live — Real-Time Mobility Intel</title>
-  <meta name="description" content="Professional real-time mobility dashboard for safety, ecology, and efficiency analysis.">
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
-
-  <!-- LOADING OVERLAY -->
-  <div class="loading-overlay" id="loading">
-    <div class="safety-scanner"></div>
-    <div class="loading-text">Syncing Live Telemetry...</div>
-  </div>
-
-  <!-- TOAST NOTIFICATION SYSTEM -->
-  <div id="toast-container"></div>
-
   <div id="app-container">
-    
-    <!-- HEADER -->
     <header id="main-header">
       <div class="brand">
-        <div class="brand-logo">🛡️</div>
-        <div class="brand-info">
+        <span class="logo">🛡️</span>
+        <div class="brand-text">
           <h1>UrbanGuard <span class="live-tag">LIVE</span></h1>
-          <p>Real-Time Network Intelligence</p>
+          <p>Network Intelligence Engine</p>
         </div>
       </div>
-      
-      <div class="system-status">
+      <div class="stats-bar">
         <div class="stat-item">
-          <span class="label">♻️ ECO IMPACT:</span>
-          <span id="eco-ledger" class="value safe">0g saved</span>
-        </div>
-        <div class="stat-item pulse-box">
-          <span class="label">PQC DATA LAYER:</span>
-          <span class="value safe pulse">SECURE</span>
+          <span class="label">♻️ ECO IMPACT</span>
+          <span id="eco-ledger" class="value positive">0g saved</span>
         </div>
         <div class="stat-item">
-          <span class="label">GPS QUALITY:</span>
-          <span id="gps-status" class="value">ACQUIRING...</span>
+          <span class="label">PQC DATA LAYER</span>
+          <span class="value secure-pulse">SECURE</span>
         </div>
       </div>
     </header>
 
-    <!-- UI PANELS -->
     <main id="dashboard">
-      
-      <!-- LEFT: Search & Controls -->
-      <section class="panel side-panel">
-        <div class="panel-header">
-          <h2><span class="icon">🔍</span> Movement Planner</h2>
-        </div>
-
-        <div class="controls-body">
+      <aside class="sidebar glass">
+        <section class="planner">
+          <h3><span class="icon">🔍</span> Movement Planner</h3>
           <div class="input-group">
-            <label>Origin</label>
-            <div class="input-wrapper">
-              <input type="text" id="origin-input" placeholder="Enter starting point...">
-              <button id="btn-gps" title="Use current location">📍</button>
-            </div>
+            <input type="text" id="origin-input" placeholder="Origin (Current Location)">
+            <input type="text" id="destination-input" placeholder="Where to?">
           </div>
+          <button id="btn-analyze" class="primary-btn">Analyze Optimal Route</button>
+        </section>
 
-          <div class="input-group">
-            <label>Destination</label>
-            <input type="text" id="destination-input" placeholder="Where are you moving to?">
-          </div>
+        <section class="toggles">
+          <h3>Journey Support</h3>
+          <label class="switch-label">
+            <input type="checkbox" id="toggle-heatmap">
+            <span class="switch"></span> Urban Pulse (Heatmap)
+          </label>
+          <label class="switch-label">
+            <input type="checkbox" id="toggle-hospitals">
+            <span class="switch"></span> Emergency Infrastructure
+          </label>
+        </section>
+      </aside>
 
-          <div class="input-group">
-            <label>Desired Arrival Time</label>
-            <input type="time" id="arrival-time-input">
-          </div>
-
-          <button id="btn-calculate" class="primary-btn">Analyze Optimal Movement</button>
-
-          <hr class="divider">
-
-          <div class="toggle-group">
-            <h3>Nearby Journey Support</h3>
-            <div class="toggle-list">
-              <label class="switch">
-                <input type="checkbox" id="toggle-hospitals">
-                <span class="slider"></span>
-                <span class="text">Hospitals & Clinics</span>
-              </label>
-              <label class="switch">
-                <input type="checkbox" id="toggle-hotels">
-                <span class="slider"></span>
-                <span class="text">Hotels & Lodges</span>
-              </label>
-              <label class="switch special">
-                <input type="checkbox" id="toggle-heatmap">
-                <span class="slider"></span>
-                <span class="text">Urban Pulse (Heatmap)</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div class="signal-density-card">
-          <div class="card-header">
-            <span>📡 Radio-Wave Density</span>
-            <span class="live-indicator">LIVE</span>
-          </div>
-          <div class="density-meter">
-            <div id="density-fill" class="fill" style="width: 45%;"></div>
-          </div>
-          <p class="density-label">Network Load: <span id="density-value">Moderate</span></p>
-        </div>
-      </section>
-
-      <!-- CENTER: Live Map -->
-      <section class="panel map-panel">
-        <div id="google-map" class="live-map"></div>
-        <div id="map-error-overlay" class="map-overlay hidden">
-          <div class="error-box">
-            <p>⚠️ Google Maps API Key Required</p>
-            <small>Please insert your key in index.html to enable live tracking.</small>
-          </div>
-        </div>
-      </section>
-
-      <!-- RIGHT: Recommendations -->
-      <section class="panel result-panel">
-        <div class="panel-header">
-          <h2><span class="icon">📊</span> Movement Metrics</h2>
-        </div>
-        
-        <div id="results-container" class="results-body">
-          <div class="empty-state">
-            <div class="icon">📡</div>
-            <p>Establishing corridor parameters...</p>
-            <small>Input route to generate telemetry insights.</small>
-          </div>
-        </div>
-
-        <div class="best-time-card hidden" id="best-time-alert">
-          <div class="header">⏳ Best Time to Leave</div>
-          <div class="content">
-            <p id="best-time-msg">Analyzing historical traffic windows...</p>
-          </div>
-        </div>
+      <section id="map-container">
+        <div id="map"></div>
       </section>
     </main>
-
-    <!-- FLOATING ACTION: REPORT HAZARD -->
-    <button id="btn-report-hazard" class="fab-btn" title="Report Live Hazard">
-      <span class="icon">🚨</span>
-      <span class="label">Report Hazard</span>
-    </button>
-
-    <!-- HAZARD REPORTING MODAL -->
-    <div id="modal-report" class="modal-overlay hidden">
-      <div class="modal-content-wrapper">
-        <div class="modal-card">
-          <div class="modal-header">
-            <h3>🚨 Report Live Network Hazard</h3>
-            <button id="btn-close-modal" class="close-btn">&times;</button>
-          </div>
-          <p class="modal-desc">Your report will be shared with all users in real-time.</p>
-          
-          <div class="report-options">
-            <div class="opt-card" data-type="Flood">🌊<span>Poor Drainage / Flood</span></div>
-            <div class="opt-card" data-type="Construction">🚧<span>Roadwork / Blockage</span></div>
-            <div class="opt-card" data-type="Safety">⚠️<span>Safety Incident</span></div>
-            <div class="opt-card" data-type="Maintenance">💡<span>Infrastructure Failure</span></div>
-          </div>
-          
-          <div class="modal-footer">
-            <small>GPS Location will be attached to report.</small>
-            <button id="btn-submit-report" class="primary-btn">Broadcast to Network</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
-
-  <!-- GOOGLE MAPS BOOTSTRAPPER (Dynamic SDK Loader) -->
-  <script>
-    async function bootstrapMaps() {
-      try {
-        const response = await fetch('http://localhost:3000/api/v1/config/map-key');
-        const { key } = await response.json();
-        
-        if (!key) throw new Error("API Key Missing");
-
-        (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b[q]||(b[q]={}),f=d.libraries||(d.libraries={}),e=a=new Symbol("symbol"),g=Object.assign({v:"weekly",key:key},g);h=m.createElement("script");h.src=`https://maps.googleapis.com/maps/api/js?key=${g.key}&v=${g.v}&libraries=places,marker,visualization&callback=initApp`;h.async=true;m.head.appendChild(h);})(
-          {key: key}
-        );
-      } catch (err) {
-        console.error("UrbanGuard: Script Load Failure:", err);
-        document.getElementById('map-error-overlay').classList.remove('hidden');
-      }
-    }
-    
-    // Begin loading sequence
-    bootstrapMaps();
-  </script>
-
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
+
 </html>

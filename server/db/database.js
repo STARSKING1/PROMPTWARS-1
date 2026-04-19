@@ -45,6 +45,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS community_incidents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     type TEXT,
+    severity TEXT,
+    description TEXT,
     lat REAL,
     lng REAL,
     reporter_id TEXT,
@@ -84,6 +86,21 @@ const insertWard = db.prepare('INSERT OR REPLACE INTO neighborhoods (id, name, n
 neighborhoodSeeds.forEach(w => insertWard.run(w));
 
 // ============================================================
+// SEED DATA: COMMUNITY INCIDENTS
+// ============================================================
+const incidentSeeds = [
+  { type: 'Flood', severity: 'High', description: 'Heavy waterlogging near Silk Board junction.', lat: 12.9172, lng: 77.6230, reporter_id: 'SYSTEM_01' },
+  { type: 'Construction', severity: 'Medium', description: 'Road resurfacing work on 100ft road.', lat: 12.9780, lng: 77.6400, reporter_id: 'SYSTEM_02' },
+  { type: 'Safety', severity: 'Critical', description: 'Power line down across the road.', lat: 12.9560, lng: 77.7010, reporter_id: 'SYSTEM_03' }
+];
+
+const checkIncidents = db.prepare('SELECT COUNT(*) as count FROM community_incidents').get();
+if (checkIncidents.count === 0) {
+  const insertIncident = db.prepare('INSERT INTO community_incidents (type, severity, description, lat, lng, reporter_id) VALUES (?, ?, ?, ?, ?, ?)');
+  incidentSeeds.forEach(inc => insertIncident.run(inc.type, inc.severity, inc.description, inc.lat, inc.lng, inc.reporter_id));
+}
+
+// ============================================================
 // DATABASE OPERATIONS
 // ============================================================
 
@@ -109,9 +126,9 @@ export function getTotalSavings() {
   return result.total || 0;
 }
 
-export function reportIncident(type, lat, lng, reporterId = 'anon') {
+export function reportIncident(type, severity, description, lat, lng, reporterId = 'anon') {
   const hashedId = hashId(reporterId);
-  return db.prepare('INSERT INTO community_incidents (type, lat, lng, reporter_id) VALUES (?, ?, ?, ?)').run(type, lat, lng, hashedId);
+  return db.prepare('INSERT INTO community_incidents (type, severity, description, lat, lng, reporter_id) VALUES (?, ?, ?, ?, ?, ?)').run(type, severity, description, lat, lng, hashedId);
 }
 
 /**
